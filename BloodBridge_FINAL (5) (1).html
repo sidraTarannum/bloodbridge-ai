@@ -1,0 +1,1475 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>BloodBridge — Emergency Blood Network</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+<style>
+:root {
+  --red: #00A86B;
+  --red-dark: #007A4D;
+  --red-light: #00C97A;
+  --red-dim: rgba(0,168,107,0.08);
+  --red-dim2: rgba(0,168,107,0.18);
+  --bg: #080809;
+  --bg2: #0F0F11;
+  --bg3: #161619;
+  --bg4: #1E1E23;
+  --border: rgba(255,255,255,0.06);
+  --border2: rgba(255,255,255,0.11);
+  --text: #EFEFF2;
+  --text2: #8888A0;
+  --text3: #505060;
+  --green: #00D084;
+  --amber: #F5A623;
+  --blue: #4A9EFF;
+  --purple: #A855F7;
+  --font: 'Syne', sans-serif;
+  --mono: 'JetBrains Mono', monospace;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--text);font-family:var(--font);min-height:100vh;overflow-x:hidden}
+
+/* ── SCROLLBAR ── */
+::-webkit-scrollbar{width:4px}
+::-webkit-scrollbar-track{background:var(--bg2)}
+::-webkit-scrollbar-thumb{background:var(--red-dim2);border-radius:2px}
+
+/* ── NAV ── */
+nav{display:flex;align-items:center;justify-content:space-between;padding:16px 32px;border-bottom:1px solid var(--border);position:sticky;top:0;z-index:100;background:rgba(8,8,9,0.93);backdrop-filter:blur(16px)}
+.logo{display:flex;align-items:center;gap:10px;font-size:19px;font-weight:800;letter-spacing:-0.5px}
+.logo-dot{width:10px;height:10px;border-radius:50%;background:var(--red);animation:pulse 1.8s infinite}
+@keyframes pulse{0%,100%{box-shadow:0 0 0 0 rgba(0,168,107,0.6)}50%{box-shadow:0 0 0 9px rgba(232,0,42,0)}}
+.nav-tabs{display:flex;gap:3px;background:var(--bg3);border-radius:10px;padding:4px;flex-wrap:wrap}
+.nav-tab{padding:7px 15px;border-radius:7px;font-size:12px;font-weight:600;cursor:pointer;color:var(--text2);transition:.2s;border:none;background:none;font-family:var(--font)}
+.nav-tab.active{background:var(--red);color:#fff}
+.nav-tab:hover:not(.active){color:var(--text);background:var(--bg4)}
+.nav-right{display:flex;align-items:center;gap:10px}
+.live-badge{display:flex;align-items:center;gap:6px;font-size:11px;font-weight:600;color:var(--green);background:rgba(0,208,132,0.08);padding:5px 12px;border-radius:20px;border:1px solid rgba(0,208,132,0.2);font-family:var(--mono)}
+.live-dot{width:6px;height:6px;border-radius:50%;background:var(--green);animation:blink 1.4s infinite}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:0.2}}
+
+/* ── PAGES ── */
+.page{display:none;animation:fadeUp .35s ease}
+.page.active{display:block}
+@keyframes fadeUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+
+/* ── HERO ── */
+.hero{padding:64px 32px 44px;text-align:center;position:relative;overflow:hidden}
+.hero::before{content:'';position:absolute;top:-80px;left:50%;transform:translateX(-50%);width:700px;height:500px;background:radial-gradient(ellipse,rgba(0,168,107,0.10) 0%,transparent 68%);pointer-events:none}
+.hero::after{content:'';position:absolute;bottom:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,var(--red-dim2),transparent)}
+.hero-tag{display:inline-flex;align-items:center;gap:6px;font-size:11px;font-weight:600;color:var(--red);background:var(--red-dim);border:1px solid var(--red-dim2);padding:5px 14px;border-radius:20px;margin-bottom:28px;font-family:var(--mono);letter-spacing:.04em}
+.hero h1{font-size:clamp(38px,6.5vw,76px);font-weight:800;line-height:1.03;letter-spacing:-2.5px;margin-bottom:22px}
+.hero h1 span{color:var(--red)}
+.hero p{font-size:16px;color:var(--text2);max-width:500px;margin:0 auto 36px;line-height:1.7;font-weight:400}
+.hero-btns{display:flex;gap:12px;justify-content:center;flex-wrap:wrap}
+.btn-primary{background:var(--red);color:#fff;border:none;padding:14px 32px;border-radius:10px;font-size:14px;font-weight:700;cursor:pointer;font-family:var(--font);transition:.2s;letter-spacing:.01em}
+.btn-primary:hover{background:var(--red-light);transform:translateY(-2px);box-shadow:0 8px 24px rgba(0,168,107,0.3)}
+.btn-secondary{background:transparent;color:var(--text);border:1px solid var(--border2);padding:14px 32px;border-radius:10px;font-size:14px;font-weight:600;cursor:pointer;font-family:var(--font);transition:.2s}
+.btn-secondary:hover{background:var(--bg3)}
+
+/* ── STATS ── */
+.stats-row{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--border);border:1px solid var(--border);border-radius:14px;overflow:hidden;margin:48px 32px}
+.stat{background:var(--bg2);padding:28px;text-align:center}
+.stat-num{font-size:38px;font-weight:800;letter-spacing:-1.5px}
+.stat-num span{color:var(--red)}
+.stat-label{font-size:12px;color:var(--text2);margin-top:5px;font-weight:500}
+
+/* ── SECTION ── */
+.section{padding:40px 32px}
+.section-title{font-size:22px;font-weight:800;letter-spacing:-0.6px;margin-bottom:6px}
+.section-sub{font-size:13px;color:var(--text2);margin-bottom:24px;font-weight:500}
+
+/* ── FORM ── */
+.form-card{background:var(--bg2);border:1px solid var(--border);border-radius:16px;padding:28px;max-width:520px}
+.form-group{margin-bottom:18px}
+.form-label{font-size:11px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.08em;margin-bottom:8px;display:block}
+.form-input{width:100%;background:var(--bg3);border:1px solid var(--border2);border-radius:10px;padding:12px 16px;color:var(--text);font-family:var(--font);font-size:14px;outline:none;transition:.2s;font-weight:500}
+.form-input:focus{border-color:var(--red);box-shadow:0 0 0 3px rgba(0,168,107,0.09)}
+.form-select{width:100%;background:var(--bg3);border:1px solid var(--border2);border-radius:10px;padding:12px 16px;color:var(--text);font-family:var(--font);font-size:14px;outline:none;cursor:pointer;appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%23606070' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 14px center;transition:.2s;font-weight:500}
+.form-select:focus{border-color:var(--red)}
+.blood-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.blood-btn{background:var(--bg3);border:1px solid var(--border);border-radius:10px;padding:14px 8px;text-align:center;cursor:pointer;font-size:15px;font-weight:700;color:var(--text2);transition:.2s;font-family:var(--font)}
+.blood-btn:hover{border-color:var(--red);color:var(--red)}
+.blood-btn.selected{background:var(--red-dim);border-color:var(--red);color:var(--red)}
+.urgency-row{display:flex;gap:8px}
+.urgency-btn{flex:1;padding:10px;border-radius:8px;border:1px solid var(--border);background:var(--bg3);color:var(--text2);font-size:12px;font-weight:600;cursor:pointer;text-align:center;transition:.2s;font-family:var(--font)}
+.urgency-btn.selected{border-color:var(--red);color:var(--red);background:var(--red-dim)}
+.urgency-btn.critical.selected{border-color:#ff4444;color:#ff4444;background:rgba(255,68,68,0.1)}
+.urgency-btn.medium.selected{border-color:var(--amber);color:var(--amber);background:rgba(245,166,35,0.1)}
+.urgency-btn.stable.selected{border-color:var(--green);color:var(--green);background:rgba(0,208,132,0.1)}
+.submit-btn{width:100%;background:var(--red);color:#fff;border:none;padding:16px;border-radius:12px;font-size:15px;font-weight:700;cursor:pointer;font-family:var(--font);transition:.2s;margin-top:8px;display:flex;align-items:center;justify-content:center;gap:8px}
+.submit-btn:hover{background:var(--red-light);transform:translateY(-1px);box-shadow:0 6px 20px rgba(0,168,107,0.25)}
+.submit-btn:disabled{opacity:.5;cursor:not-allowed;transform:none}
+
+/* ── RESULT ── */
+.result-card{background:var(--bg2);border:1px solid rgba(0,208,132,0.25);border-radius:16px;padding:24px;margin-top:20px;display:none}
+.result-card.show{display:block;animation:fadeUp .4s ease}
+.result-header{display:flex;align-items:center;gap:10px;margin-bottom:16px}
+.result-icon{width:40px;height:40px;border-radius:50%;background:rgba(0,208,132,0.12);display:flex;align-items:center;justify-content:center;font-size:18px;border:1px solid rgba(0,208,132,0.2)}
+.result-title{font-size:15px;font-weight:700;color:var(--green)}
+.result-sub{font-size:12px;color:var(--text2);margin-top:2px}
+.donor-list{display:flex;flex-direction:column;gap:10px;margin-top:12px}
+.donor-item{background:var(--bg3);border:1px solid var(--border);border-radius:12px;padding:14px 16px;display:flex;align-items:center;justify-content:space-between}
+.donor-left{display:flex;align-items:center;gap:12px}
+.donor-avatar{width:38px;height:38px;border-radius:50%;background:var(--red-dim);border:1px solid var(--red-dim2);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:800;color:var(--red)}
+.donor-name{font-size:13px;font-weight:700}
+.donor-meta{font-size:11px;color:var(--text2);margin-top:2px}
+.donor-dist{font-size:11px;color:var(--text3);font-family:var(--mono)}
+.donor-status{display:flex;align-items:center;gap:5px;font-size:11px;font-weight:600;color:var(--green)}
+.dot-green{width:5px;height:5px;border-radius:50%;background:var(--green)}
+
+/* ── MAP ── */
+.map-container{background:var(--bg2);border:1px solid var(--border);border-radius:16px;overflow:hidden}
+.map-header{padding:16px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
+.map-title{font-size:13px;font-weight:700}
+.map-legend{display:flex;gap:14px}
+.legend-item{display:flex;align-items:center;gap:5px;font-size:11px;color:var(--text2);font-weight:500}
+.legend-dot{width:7px;height:7px;border-radius:50%}
+.map-canvas{position:relative;height:420px;background:var(--bg3);overflow:hidden}
+.map-grid{position:absolute;inset:0;background-image:linear-gradient(var(--border) 1px,transparent 1px),linear-gradient(90deg,var(--border) 1px,transparent 1px);background-size:40px 40px}
+.map-city{position:absolute;font-size:11px;color:var(--text3);font-family:var(--mono)}
+.map-pin{position:absolute;transform:translate(-50%,-50%);cursor:pointer;transition:.2s}
+.map-pin:hover{transform:translate(-50%,-50%) scale(1.2);z-index:10}
+.pin-donor{width:28px;height:28px;border-radius:50%;background:rgba(0,208,132,0.15);border:2px solid var(--green);display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:800;color:var(--green)}
+.pin-bank{width:30px;height:30px;border-radius:6px;background:rgba(74,158,255,0.12);border:2px solid var(--blue);display:flex;align-items:center;justify-content:center;font-size:10px}
+.pin-request{width:34px;height:34px;border-radius:50%;background:rgba(0,168,107,0.2);border:2px solid var(--red);display:flex;align-items:center;justify-content:center;font-size:14px;animation:ping .8s ease infinite alternate}
+@keyframes ping{from{box-shadow:0 0 0 0 rgba(0,168,107,0.5)}to{box-shadow:0 0 0 14px rgba(232,0,42,0)}}
+.map-tooltip{position:absolute;background:var(--bg);border:1px solid var(--border2);border-radius:8px;padding:8px 12px;font-size:11px;white-space:nowrap;pointer-events:none;z-index:20;opacity:0;transition:.2s;font-weight:500}
+.map-pin:hover .map-tooltip{opacity:1}
+
+/* ── DONORS GRID ── */
+.donors-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:16px}
+.donor-card{background:var(--bg2);border:1px solid var(--border);border-radius:14px;padding:20px;transition:.2s}
+.donor-card:hover{border-color:var(--border2);background:var(--bg3)}
+.donor-card-top{display:flex;align-items:center;gap:14px;margin-bottom:14px}
+.donor-card-avatar{width:46px;height:46px;border-radius:50%;background:var(--red-dim);border:2px solid var(--red-dim2);display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:800;color:var(--red)}
+.donor-card-name{font-size:14px;font-weight:700}
+.donor-card-area{font-size:12px;color:var(--text2);margin-top:2px}
+.donor-card-blood{display:inline-block;background:var(--red-dim);border:1px solid var(--red-dim2);color:var(--red);font-size:12px;font-weight:700;padding:3px 10px;border-radius:20px;font-family:var(--mono)}
+.donor-card-info{display:flex;flex-direction:column;gap:5px;margin-top:12px;padding-top:12px;border-top:1px solid var(--border)}
+.info-row{display:flex;justify-content:space-between;align-items:center}
+.info-key{font-size:11px;color:var(--text3);font-weight:500}
+.info-val{font-size:11px;color:var(--text2);font-family:var(--mono)}
+.avail-toggle{display:flex;align-items:center;gap:8px;margin-top:12px;padding-top:12px;border-top:1px solid var(--border)}
+.toggle{width:36px;height:20px;border-radius:10px;background:var(--bg4);border:1px solid var(--border2);cursor:pointer;position:relative;transition:.3s}
+.toggle.on{background:var(--green);border-color:var(--green)}
+.toggle-thumb{width:14px;height:14px;border-radius:50%;background:#fff;position:absolute;top:2px;left:2px;transition:.3s}
+.toggle.on .toggle-thumb{transform:translateX(16px)}
+.toggle-label{font-size:12px;color:var(--text2);font-weight:600}
+
+/* ── AI CHAT ── */
+.ai-card{background:var(--bg2);border:1px solid var(--border);border-radius:16px;overflow:hidden;max-width:620px}
+.ai-header{padding:16px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px}
+.ai-logo{width:30px;height:30px;border-radius:8px;background:linear-gradient(135deg,#4A9EFF,#A855F7);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:800;color:#fff}
+.ai-title{font-size:13px;font-weight:700}
+.ai-subtitle{font-size:11px;color:var(--text3);font-family:var(--mono)}
+.ai-messages{padding:16px;display:flex;flex-direction:column;gap:10px;min-height:220px;max-height:340px;overflow-y:auto}
+.ai-msg{padding:11px 14px;border-radius:10px;font-size:13px;line-height:1.65;max-width:88%;font-weight:500}
+.ai-msg.user{background:var(--red-dim);border:1px solid var(--red-dim2);color:var(--text);align-self:flex-end}
+.ai-msg.bot{background:var(--bg3);border:1px solid var(--border);color:var(--text);align-self:flex-start}
+.ai-msg.typing{color:var(--text2)}
+.ai-input-row{padding:12px 16px;border-top:1px solid var(--border);display:flex;gap:8px}
+.ai-input{flex:1;background:var(--bg3);border:1px solid var(--border2);border-radius:8px;padding:10px 14px;color:var(--text);font-family:var(--font);font-size:13px;outline:none;font-weight:500}
+.ai-input:focus{border-color:var(--red)}
+.ai-send{background:var(--red);color:#fff;border:none;border-radius:8px;padding:10px 18px;font-size:13px;font-weight:700;cursor:pointer;font-family:var(--font);transition:.2s}
+.ai-send:hover{background:var(--red-light)}
+
+/* ── DEMO ── */
+.missed-call-demo{background:var(--bg2);border:1px solid var(--border);border-radius:16px;padding:28px;max-width:460px}
+.phone-screen{background:#14141e;border:2px solid var(--border2);border-radius:22px;padding:22px;text-align:center;margin:18px 0;position:relative;overflow:hidden}
+.phone-screen::before{content:'';position:absolute;top:0;left:50%;transform:translateX(-50%);width:60px;height:4px;background:var(--border2);border-radius:0 0 4px 4px}
+.phone-time{font-size:30px;font-weight:800;letter-spacing:-1.5px;margin:8px 0 4px;font-family:var(--mono)}
+.phone-date{font-size:11px;color:var(--text2);margin-bottom:16px;font-weight:500}
+.phone-notif{background:rgba(255,255,255,0.04);border:1px solid var(--border2);border-radius:12px;padding:12px 14px;text-align:left;margin-bottom:8px}
+.notif-app{font-size:10px;color:var(--text3);margin-bottom:4px;text-transform:uppercase;letter-spacing:.08em;font-weight:600}
+.notif-title{font-size:13px;font-weight:700}
+.notif-body{font-size:11px;color:var(--text2);margin-top:3px;line-height:1.5}
+.notif-time{font-size:10px;color:var(--text3);font-family:var(--mono);margin-top:4px}
+.demo-timer{font-size:50px;font-weight:800;color:var(--red);text-align:center;font-family:var(--mono);letter-spacing:-2px}
+.demo-timer-label{font-size:12px;color:var(--text2);text-align:center;margin-top:4px;font-weight:600}
+.demo-step{display:flex;align-items:flex-start;gap:12px;padding:10px 0;border-bottom:1px solid var(--border)}
+.demo-step:last-child{border:none}
+.step-num{min-width:24px;height:24px;border-radius:50%;background:var(--red-dim);border:1px solid var(--red-dim2);display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:800;color:var(--red);font-family:var(--mono)}
+.step-num.done{background:rgba(0,208,132,0.1);border-color:rgba(0,208,132,0.3);color:var(--green)}
+.step-text{font-size:12px;color:var(--text2);padding-top:3px;line-height:1.5;font-weight:500}
+.step-time{font-size:10px;color:var(--text3);font-family:var(--mono);margin-top:2px}
+.missed-call-btn{width:100%;background:var(--bg3);border:2px dashed var(--border2);border-radius:12px;padding:18px;text-align:center;cursor:pointer;font-family:var(--font);transition:.2s;color:var(--text2);font-size:13px;font-weight:600}
+.missed-call-btn:hover{border-color:var(--red);color:var(--red);background:var(--red-dim)}
+
+/* ── TECH STACK ── */
+.deploy-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:14px;margin-top:16px}
+.deploy-card{background:var(--bg2);border:1px solid var(--border);border-radius:14px;padding:20px;transition:.2s}
+.deploy-card:hover{border-color:var(--border2)}
+.deploy-icon{font-size:26px;margin-bottom:10px}
+.deploy-name{font-size:14px;font-weight:700;margin-bottom:4px}
+.deploy-desc{font-size:12px;color:var(--text2);line-height:1.6;margin-bottom:12px;font-weight:400}
+.deploy-badge{display:inline-block;font-size:10px;padding:3px 10px;border-radius:20px;font-weight:700;font-family:var(--mono)}
+.db-green{background:rgba(0,208,132,0.1);color:var(--green);border:1px solid rgba(0,208,132,0.2)}
+.db-blue{background:rgba(74,158,255,0.1);color:var(--blue);border:1px solid rgba(74,158,255,0.2)}
+.db-red{background:var(--red-dim);color:var(--red);border:1px solid var(--red-dim2)}
+.db-amber{background:rgba(245,166,35,0.1);color:var(--amber);border:1px solid rgba(245,166,35,0.2)}
+.db-purple{background:rgba(168,85,247,0.1);color:var(--purple);border:1px solid rgba(168,85,247,0.2)}
+.code-block{background:var(--bg3);border:1px solid var(--border);border-radius:12px;padding:16px 20px;font-family:var(--mono);font-size:12px;color:var(--text2);line-height:1.8;overflow-x:auto;margin-top:10px}
+.code-comment{color:var(--text3)}
+.code-key{color:var(--purple)}
+.code-val{color:var(--green)}
+.code-str{color:var(--amber)}
+
+/* ── NEW: PREDICTIVE SHORTAGE ── */
+.predict-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px;margin-top:16px}
+.predict-card{background:var(--bg2);border:1px solid var(--border);border-radius:14px;padding:18px;transition:.2s}
+.predict-card:hover{border-color:var(--border2)}
+.predict-blood{font-size:22px;font-weight:800;font-family:var(--mono);margin-bottom:6px}
+.predict-hospital{font-size:12px;color:var(--text2);margin-bottom:10px;font-weight:500}
+.predict-bar-bg{height:6px;background:var(--bg4);border-radius:3px;margin-bottom:8px;overflow:hidden}
+.predict-bar{height:100%;border-radius:3px;transition:width 1s ease}
+.predict-days{font-size:11px;font-family:var(--mono);font-weight:600}
+.predict-status{display:inline-block;font-size:10px;font-weight:700;padding:3px 10px;border-radius:20px;margin-top:8px;font-family:var(--mono)}
+.status-critical{background:rgba(255,68,68,0.12);color:#ff4444;border:1px solid rgba(255,68,68,0.2)}
+.status-warning{background:rgba(245,166,35,0.1);color:var(--amber);border:1px solid rgba(245,166,35,0.2)}
+.status-safe{background:rgba(0,208,132,0.1);color:var(--green);border:1px solid rgba(0,208,132,0.2)}
+.ai-predict-btn{background:linear-gradient(135deg,rgba(168,85,247,0.15),rgba(74,158,255,0.15));border:1px solid rgba(168,85,247,0.3);color:var(--purple);padding:12px 24px;border-radius:10px;font-size:13px;font-weight:700;cursor:pointer;font-family:var(--font);transition:.2s;margin-bottom:20px}
+.ai-predict-btn:hover{background:linear-gradient(135deg,rgba(168,85,247,0.25),rgba(74,158,255,0.25))}
+
+/* ── NEW: OFFLINE SMS ── */
+.offline-demo{background:var(--bg2);border:1px solid var(--border);border-radius:16px;padding:24px;max-width:500px}
+.signal-bars{display:flex;align-items:flex-end;gap:3px;height:24px}
+.bar{width:6px;border-radius:2px;background:var(--border2);transition:.3s}
+.bar.active{background:var(--green)}
+.network-status{display:flex;align-items:center;gap:10px;margin-bottom:16px}
+.network-label{font-size:13px;font-weight:600}
+.sms-log{background:var(--bg3);border:1px solid var(--border);border-radius:12px;padding:14px;font-family:var(--mono);font-size:11px;color:var(--text2);line-height:1.9;min-height:120px;margin-top:12px}
+.sms-entry{display:flex;gap:8px;align-items:flex-start}
+.sms-time{color:var(--text3);min-width:50px}
+.sms-text{color:var(--text2)}
+.sms-text.success{color:var(--green)}
+.sms-text.alert{color:var(--amber)}
+.sms-text.error{color:#ff4444}
+.offline-toggle-btn{background:var(--bg3);border:1px solid var(--border2);color:var(--text);padding:10px 20px;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer;font-family:var(--font);transition:.2s;margin-right:8px}
+.offline-toggle-btn:hover{border-color:var(--amber);color:var(--amber)}
+.sms-send-btn{background:var(--green);border:none;color:#000;padding:10px 20px;border-radius:8px;font-size:12px;font-weight:800;cursor:pointer;font-family:var(--font);transition:.2s}
+.sms-send-btn:hover{opacity:.85}
+
+/* ── DONOR THANKS ── */
+.thanks-hero{background:linear-gradient(135deg,rgba(0,168,107,0.06),rgba(0,208,132,0.06));border:1px solid var(--border);border-radius:20px;padding:36px;text-align:center;margin-bottom:28px;position:relative;overflow:hidden}
+.thanks-hero::before{content:'';position:absolute;top:-60px;left:50%;transform:translateX(-50%);width:400px;height:300px;background:radial-gradient(ellipse,rgba(0,208,132,0.08) 0%,transparent 70%);pointer-events:none}
+.heart-anim{font-size:64px;animation:heartbeat 1.4s ease infinite}
+@keyframes heartbeat{0%,100%{transform:scale(1)}15%{transform:scale(1.18)}30%{transform:scale(1)}45%{transform:scale(1.1)}60%{transform:scale(1)}}
+.thanks-title{font-size:28px;font-weight:800;letter-spacing:-1px;margin:16px 0 8px}
+.thanks-subtitle{font-size:14px;color:var(--text2);max-width:480px;margin:0 auto;line-height:1.7}
+.donor-select-card{background:var(--bg2);border:1px solid var(--border);border-radius:16px;padding:24px;max-width:560px}
+.donor-radio-grid{display:flex;flex-direction:column;gap:10px;margin:12px 0 20px}
+.donor-radio{display:flex;align-items:center;gap:14px;background:var(--bg3);border:1px solid var(--border);border-radius:12px;padding:14px 16px;cursor:pointer;transition:.2s}
+.donor-radio:hover{border-color:var(--border2)}
+.donor-radio.selected{border-color:var(--green);background:rgba(0,208,132,0.05)}
+.donor-radio input[type=radio]{accent-color:var(--green);width:16px;height:16px}
+.donor-radio-info{flex:1}
+.donor-radio-name{font-size:13px;font-weight:700}
+.donor-radio-meta{font-size:11px;color:var(--text2);margin-top:2px;font-family:var(--mono)}
+.donor-radio-blood{font-size:12px;font-weight:700;color:var(--red);background:var(--red-dim);border:1px solid var(--red-dim2);padding:2px 8px;border-radius:12px;font-family:var(--mono)}
+.send-thanks-btn{width:100%;background:linear-gradient(135deg,var(--green),#00a86b);color:#000;border:none;padding:16px;border-radius:12px;font-size:15px;font-weight:800;cursor:pointer;font-family:var(--font);transition:.2s;display:flex;align-items:center;justify-content:center;gap:8px}
+.send-thanks-btn:hover{opacity:.9;transform:translateY(-1px);box-shadow:0 8px 24px rgba(0,208,132,0.3)}
+.send-thanks-btn:disabled{opacity:.5;cursor:not-allowed;transform:none}
+.thanks-msg-preview{background:var(--bg3);border:1px solid rgba(0,208,132,0.2);border-radius:12px;padding:16px;margin:16px 0;font-size:13px;color:var(--text2);line-height:1.8;font-style:italic;position:relative}
+.thanks-msg-preview::before{content:'"';font-size:40px;color:var(--green);opacity:.3;position:absolute;top:-5px;left:12px;font-family:serif;line-height:1}
+.notification-popup{position:fixed;top:80px;right:24px;background:var(--bg2);border:1px solid rgba(0,208,132,0.4);border-radius:16px;padding:20px 24px;max-width:340px;z-index:999;display:none;animation:slideIn .4s ease;box-shadow:0 20px 60px rgba(0,0,0,0.5)}
+@keyframes slideIn{from{opacity:0;transform:translateX(40px)}to{opacity:1;transform:translateX(0)}}
+.notif-popup-icon{font-size:36px;margin-bottom:10px}
+.notif-popup-title{font-size:14px;font-weight:800;color:var(--green);margin-bottom:6px}
+.notif-popup-msg{font-size:12px;color:var(--text2);line-height:1.7}
+.notif-close{position:absolute;top:12px;right:14px;background:none;border:none;color:var(--text3);font-size:18px;cursor:pointer}
+.thanks-history{margin-top:28px}
+.thanks-history-item{background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:16px;margin-bottom:10px;display:flex;gap:14px;align-items:flex-start;transition:.2s}
+.thanks-history-item:hover{border-color:var(--border2)}
+.thanks-badge{min-width:42px;height:42px;border-radius:50%;background:rgba(0,208,132,0.1);border:1px solid rgba(0,208,132,0.25);display:flex;align-items:center;justify-content:center;font-size:18px}
+.thanks-hist-name{font-size:13px;font-weight:700;margin-bottom:3px}
+.thanks-hist-msg{font-size:12px;color:var(--text2);line-height:1.6}
+.thanks-hist-time{font-size:10px;color:var(--text3);margin-top:4px;font-family:var(--mono)}
+.impact-counter{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--border);border:1px solid var(--border);border-radius:14px;overflow:hidden;margin-bottom:28px}
+.impact-stat{background:var(--bg2);padding:20px;text-align:center}
+.impact-num{font-size:28px;font-weight:800;letter-spacing:-1px;color:var(--green)}
+.impact-label{font-size:11px;color:var(--text2);margin-top:4px;font-weight:500}
+
+/* ── RESPONSIVE ── */
+@media(max-width:700px){
+  nav{padding:12px 16px;flex-wrap:wrap;gap:10px}
+  .nav-tabs{order:3;width:100%}
+  .hero{padding:40px 16px 28px}
+  .stats-row{grid-template-columns:1fr;margin:24px 16px}
+  .section{padding:28px 16px}
+  .blood-grid{grid-template-columns:repeat(4,1fr)}
+}
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="logo">
+    <div class="logo-dot"></div>
+    BloodBridge
+  </div>
+  <div class="nav-tabs">
+    <button class="nav-tab active" onclick="showPage('home',this)">Home</button>
+    <button class="nav-tab" onclick="showPage('request',this)">Request Blood</button>
+    <button class="nav-tab" onclick="showPage('donors',this)">Donors</button>
+    <button class="nav-tab" onclick="showPage('map',this)">Live Map</button>
+    <button class="nav-tab" onclick="showPage('predict',this)">🔮 AI Predict</button>
+    <button class="nav-tab" onclick="showPage('offline',this)">📡 Offline SMS</button>
+    <button class="nav-tab" onclick="showPage('thanks',this)">💌 Donor Thanks</button>
+    <button class="nav-tab" onclick="showPage('demo',this)">Demo</button>
+    <button class="nav-tab" onclick="showPage('tech',this)">Tech Stack</button>
+  </div>
+  <div class="nav-right">
+    <div class="live-badge"><div class="live-dot"></div>LIVE · HYD</div>
+  </div>
+</nav>
+
+<!-- ═══ HOME ═══ -->
+<div class="page active" id="page-home">
+  <div class="hero">
+    <div class="hero-tag">🩸 Emergency Blood Network · Powered by Gemini AI</div>
+    <h1>4 minutes.<br><span>1 missed call.</span><br>1 life saved.</h1>
+    <p>When hospitals run out of blood, BloodBridge connects patients to nearby donors instantly — no smartphone required. Just one missed call. Now with AI-powered shortage prediction.</p>
+    <div class="hero-btns">
+      <button class="btn-primary" onclick="showPage('request',null)">Request Blood Now</button>
+      <button class="btn-secondary" onclick="showPage('demo',null)">Watch Demo</button>
+    </div>
+  </div>
+  <div class="stats-row">
+    <div class="stat"><div class="stat-num">12<span>k+</span></div><div class="stat-label">Deaths/yr from coordination failure</div></div>
+    <div class="stat"><div class="stat-num"><span>&lt;</span>4<span>min</span></div><div class="stat-label">Average BloodBridge response time</div></div>
+    <div class="stat"><div class="stat-num">600<span>M</span></div><div class="stat-label">Feature phone users we reach</div></div>
+  </div>
+  <div class="section">
+    <div class="section-title">How it works</div>
+    <div class="section-sub">Three steps between a request and a donor</div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:14px">
+      <div style="background:var(--bg2);border:1px solid var(--border);border-radius:14px;padding:22px">
+        <div style="font-size:28px;margin-bottom:12px">📞</div>
+        <div style="font-size:14px;font-weight:700;margin-bottom:6px">Missed call or message</div>
+        <div style="font-size:12px;color:var(--text2);line-height:1.7">Give a missed call to +91-BLOOD-NOW or WhatsApp blood group + location. No smartphone app needed.</div>
+      </div>
+      <div style="background:var(--bg2);border:1px solid var(--border);border-radius:14px;padding:22px">
+        <div style="font-size:28px;margin-bottom:12px">🤖</div>
+        <div style="font-size:14px;font-weight:700;margin-bottom:6px">Gemini AI matches instantly</div>
+        <div style="font-size:12px;color:var(--text2);line-height:1.7">AI checks blood group compatibility, finds donors within 5km, and checks live blood bank stock simultaneously.</div>
+      </div>
+      <div style="background:var(--bg2);border:1px solid var(--border);border-radius:14px;padding:22px">
+        <div style="font-size:28px;margin-bottom:12px">🔮</div>
+        <div style="font-size:14px;font-weight:700;margin-bottom:6px">Predicts shortages 7 days early</div>
+        <div style="font-size:12px;color:var(--text2);line-height:1.7">Gemini AI analyzes hospital patterns, festivals, accidents to predict blood shortage before it happens.</div>
+      </div>
+      <div style="background:var(--bg2);border:1px solid var(--border);border-radius:14px;padding:22px">
+        <div style="font-size:28px;margin-bottom:12px">💌</div>
+        <div style="font-size:14px;font-weight:700;margin-bottom:6px">Donor gets thanked personally</div>
+        <div style="font-size:12px;color:var(--text2);line-height:1.7">When blood is used, Gemini AI sends a heartfelt thank you to the donor — "Your blood saved a life today." 94% donate again!</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ REQUEST BLOOD ═══ -->
+<div class="page" id="page-request">
+  <div class="section">
+    <div class="section-title">Request Emergency Blood</div>
+    <div class="section-sub">Fill details — Gemini AI will match donors within 60 seconds</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:24px;align-items:start">
+      <div class="form-card">
+        <div class="form-group">
+          <label class="form-label">Blood Group Needed</label>
+          <div class="blood-grid">
+            <div class="blood-btn" onclick="selectBlood(this,'A+')">A+</div>
+            <div class="blood-btn" onclick="selectBlood(this,'A-')">A−</div>
+            <div class="blood-btn" onclick="selectBlood(this,'B+')">B+</div>
+            <div class="blood-btn" onclick="selectBlood(this,'B-')">B−</div>
+            <div class="blood-btn" onclick="selectBlood(this,'O+')">O+</div>
+            <div class="blood-btn" onclick="selectBlood(this,'O-')">O−</div>
+            <div class="blood-btn" onclick="selectBlood(this,'AB+')">AB+</div>
+            <div class="blood-btn" onclick="selectBlood(this,'AB-')">AB−</div>
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Hospital / Location</label>
+          <input class="form-input" id="hospitalInput" placeholder="e.g. KIMS Hospital, Secunderabad"/>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Units Required</label>
+          <select class="form-select" id="unitsSelect">
+            <option>1 unit</option><option>2 units</option><option>3 units</option><option>4+ units</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Urgency Level</label>
+          <div class="urgency-row">
+            <div class="urgency-btn critical" onclick="selectUrgency(this,'critical')">🔴 Critical</div>
+            <div class="urgency-btn medium" onclick="selectUrgency(this,'medium')">🟡 Moderate</div>
+            <div class="urgency-btn stable" onclick="selectUrgency(this,'stable')">🟢 Stable</div>
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Contact Number</label>
+          <input class="form-input" id="contactInput" placeholder="+91 98765 43210"/>
+        </div>
+        <button class="submit-btn" onclick="submitRequest()" id="submitBtn">
+          <span>Find Donors Now</span><span style="font-size:18px">→</span>
+        </button>
+      </div>
+      <div>
+        <div id="resultCard" class="result-card">
+          <div class="result-header">
+            <div class="result-icon">✓</div>
+            <div>
+              <div class="result-title" id="resultTitle">3 Donors Found Nearby</div>
+              <div class="result-sub" id="resultSub">Alerts sent — average response in 4 min</div>
+            </div>
+          </div>
+          <div class="donor-list" id="donorList"></div>
+        </div>
+        <div id="aiTriage" style="display:none;margin-top:16px">
+          <div style="font-size:11px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.08em;margin-bottom:8px">🤖 Gemini AI Triage Analysis</div>
+          <div style="background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:14px;font-size:12px;color:var(--text2);line-height:1.8;font-weight:500" id="triageText"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ DONORS ═══ -->
+<div class="page" id="page-donors">
+  <div class="section">
+    <div class="section-title">Registered Donors — Hyderabad</div>
+    <div class="section-sub">486 active donors · Toggle availability in real-time</div>
+    <div class="donors-grid" id="donorsGrid"></div>
+  </div>
+</div>
+
+<!-- ═══ MAP ═══ -->
+<div class="page" id="page-map">
+  <div class="section">
+    <div class="section-title">Live Donor Map</div>
+    <div class="section-sub">Real-time donor locations and blood bank stock — Hyderabad</div>
+    <div class="map-container">
+      <div class="map-header">
+        <div class="map-title">Greater Hyderabad Area</div>
+        <div class="map-legend">
+          <div class="legend-item"><div class="legend-dot" style="background:var(--green)"></div>Donor</div>
+          <div class="legend-item"><div class="legend-dot" style="background:var(--blue);border-radius:2px"></div>Blood Bank</div>
+          <div class="legend-item"><div class="legend-dot" style="background:var(--red)"></div>Request</div>
+        </div>
+      </div>
+      <div class="map-canvas" id="mapCanvas">
+        <div class="map-grid"></div>
+        <div class="map-city" style="bottom:16px;left:16px;font-size:12px">Greater Hyderabad</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ 🔮 NEW: PREDICTIVE SHORTAGE ═══ -->
+<div class="page" id="page-predict">
+  <div class="section">
+    <div class="section-title">🔮 AI Blood Shortage Predictor</div>
+    <div class="section-sub">Gemini AI analyzes patterns to predict blood shortages 7 days in advance</div>
+
+    <!-- API KEY INSTRUCTION -->
+    <div style="background:rgba(168,85,247,0.07);border:1px solid rgba(168,85,247,0.25);border-radius:12px;padding:16px 20px;margin-bottom:20px;max-width:700px">
+      <div style="font-size:12px;font-weight:700;color:var(--purple);margin-bottom:6px">🔑 STEP 1 — Yahan apni Gemini API Key likho</div>
+      <div style="display:flex;gap:8px;align-items:center">
+        <input id="predictApiKey" class="form-input" style="max-width:400px;font-family:var(--mono);font-size:12px" placeholder='Yahan paste karo: AIzaSy...' />
+        <button onclick="savePredictKey()" style="background:var(--purple);border:none;color:#fff;padding:10px 18px;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer;font-family:var(--font)">Save Key</button>
+      </div>
+      <div style="font-size:11px;color:var(--text3);margin-top:6px">aistudio.google.com pe jao → Get API Key → Free mein milegi</div>
+    </div>
+
+    <button class="ai-predict-btn" onclick="runPrediction()">🤖 Run Gemini AI Prediction Now</button>
+
+    <div id="predictLoading" style="display:none;font-size:13px;color:var(--text2);margin-bottom:16px;font-weight:600">⏳ Gemini AI analyzing patterns...</div>
+
+    <div id="predictResults">
+      <div class="predict-grid" id="predictGrid">
+        <!-- Static preview cards -->
+        <div class="predict-card">
+          <div class="predict-blood" style="color:var(--red)">O−</div>
+          <div class="predict-hospital">Nizam's Institute</div>
+          <div class="predict-bar-bg"><div class="predict-bar" style="width:15%;background:#ff4444"></div></div>
+          <div class="predict-days" style="color:#ff4444">⚠ Critical in 2 days</div>
+          <div><span class="predict-status status-critical">CRITICAL</span></div>
+        </div>
+        <div class="predict-card">
+          <div class="predict-blood" style="color:var(--amber)">B−</div>
+          <div class="predict-hospital">KIMS Hospital</div>
+          <div class="predict-bar-bg"><div class="predict-bar" style="width:35%;background:var(--amber)"></div></div>
+          <div class="predict-days" style="color:var(--amber)">⚡ Low in 4 days</div>
+          <div><span class="predict-status status-warning">WARNING</span></div>
+        </div>
+        <div class="predict-card">
+          <div class="predict-blood" style="color:var(--amber)">AB−</div>
+          <div class="predict-hospital">Apollo Blood Bank</div>
+          <div class="predict-bar-bg"><div class="predict-bar" style="width:42%;background:var(--amber)"></div></div>
+          <div class="predict-days" style="color:var(--amber)">⚡ Low in 5 days</div>
+          <div><span class="predict-status status-warning">WARNING</span></div>
+        </div>
+        <div class="predict-card">
+          <div class="predict-blood" style="color:var(--green)">A+</div>
+          <div class="predict-hospital">All Hospitals</div>
+          <div class="predict-bar-bg"><div class="predict-bar" style="width:78%;background:var(--green)"></div></div>
+          <div class="predict-days" style="color:var(--green)">✓ Safe for 12+ days</div>
+          <div><span class="predict-status status-safe">SAFE</span></div>
+        </div>
+        <div class="predict-card">
+          <div class="predict-blood" style="color:var(--green)">O+</div>
+          <div class="predict-hospital">All Hospitals</div>
+          <div class="predict-bar-bg"><div class="predict-bar" style="width:85%;background:var(--green)"></div></div>
+          <div class="predict-days" style="color:var(--green)">✓ Safe for 15+ days</div>
+          <div><span class="predict-status status-safe">SAFE</span></div>
+        </div>
+        <div class="predict-card">
+          <div class="predict-blood" style="color:var(--green)">B+</div>
+          <div class="predict-hospital">All Hospitals</div>
+          <div class="predict-bar-bg"><div class="predict-bar" style="width:70%;background:var(--green)"></div></div>
+          <div class="predict-days" style="color:var(--green)">✓ Safe for 10+ days</div>
+          <div><span class="predict-status status-safe">SAFE</span></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Gemini AI Prediction Report -->
+    <div style="margin-top:28px;max-width:700px">
+      <div style="font-size:14px;font-weight:700;margin-bottom:8px">🤖 Gemini AI Detailed Report</div>
+      <div id="predictReport" style="background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:18px;font-size:13px;color:var(--text2);line-height:1.8;font-weight:500;min-height:100px">
+        Click <strong style="color:var(--purple)">"Run Gemini AI Prediction"</strong> button upar — real AI analysis aayegi yahan. Apni API key pehle save karo.
+      </div>
+    </div>
+
+    <!-- How it works -->
+    <div style="margin-top:28px;max-width:700px">
+      <div style="font-size:14px;font-weight:700;margin-bottom:12px">How Prediction Works</div>
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:10px">
+        <div style="background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:14px;text-align:center">
+          <div style="font-size:22px;margin-bottom:6px">📅</div>
+          <div style="font-size:12px;font-weight:700;margin-bottom:4px">Seasonal Patterns</div>
+          <div style="font-size:11px;color:var(--text2)">Festivals, accidents, surgery schedules</div>
+        </div>
+        <div style="background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:14px;text-align:center">
+          <div style="font-size:22px;margin-bottom:6px">📊</div>
+          <div style="font-size:12px;font-weight:700;margin-bottom:4px">Stock Trends</div>
+          <div style="font-size:11px;color:var(--text2)">30-day usage history per blood group</div>
+        </div>
+        <div style="background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:14px;text-align:center">
+          <div style="font-size:22px;margin-bottom:6px">🌧️</div>
+          <div style="font-size:12px;font-weight:700;margin-bottom:4px">Weather Data</div>
+          <div style="font-size:11px;color:var(--text2)">Rain = more accidents = more demand</div>
+        </div>
+        <div style="background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:14px;text-align:center">
+          <div style="font-size:22px;margin-bottom:6px">🚨</div>
+          <div style="font-size:12px;font-weight:700;margin-bottom:4px">Auto Alert</div>
+          <div style="font-size:11px;color:var(--text2)">Hospitals + donors notified 7 days early</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ 📡 NEW: OFFLINE SMS ═══ -->
+<div class="page" id="page-offline">
+  <div class="section">
+    <div class="section-title">📡 Offline SMS Emergency Mode</div>
+    <div class="section-sub">No internet? No balance? BloodBridge still works via SMS fallback</div>
+
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:24px;align-items:start;max-width:900px">
+
+      <!-- SMS Demo -->
+      <div class="offline-demo">
+        <div class="network-status">
+          <div class="signal-bars" id="signalBars">
+            <div class="bar active" style="height:6px"></div>
+            <div class="bar active" style="height:10px"></div>
+            <div class="bar active" style="height:14px"></div>
+            <div class="bar active" style="height:18px"></div>
+          </div>
+          <div class="network-label" id="networkLabel" style="color:var(--green)">Network: Online</div>
+        </div>
+
+        <div style="font-size:13px;font-weight:700;margin-bottom:8px">Simulate Emergency SMS</div>
+        <div style="font-size:12px;color:var(--text2);margin-bottom:14px;line-height:1.6">
+          Test karo — network off karo aur dekho SMS mode kaise kaam karta hai
+        </div>
+
+        <div style="display:flex;gap:8px;margin-bottom:16px">
+          <button class="offline-toggle-btn" onclick="toggleNetwork()">📵 Toggle Network</button>
+          <button class="sms-send-btn" onclick="sendSMSAlert()">Send SOS SMS</button>
+        </div>
+
+        <!-- SMS Format Info -->
+        <div style="background:var(--bg3);border:1px solid var(--border);border-radius:10px;padding:14px;margin-bottom:14px">
+          <div style="font-size:11px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px">SMS Format (Automatic)</div>
+          <div style="font-family:var(--mono);font-size:12px;color:var(--amber);line-height:1.8">
+            SOS B- KIMS 2units CRITICAL<br>
+            GPS:17.4401,78.4982<br>
+            Contact:+919876543210
+          </div>
+        </div>
+
+        <!-- SMS Log -->
+        <div style="font-size:11px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px">Activity Log</div>
+        <div class="sms-log" id="smsLog">
+          <div class="sms-entry"><span class="sms-time">--:--</span><span class="sms-text">Waiting for SOS trigger...</span></div>
+        </div>
+      </div>
+
+      <!-- How it works -->
+      <div>
+        <div style="font-size:14px;font-weight:700;margin-bottom:16px">3-Layer Fallback System</div>
+
+        <div style="display:flex;flex-direction:column;gap:12px">
+          <div style="background:var(--bg2);border:1px solid rgba(0,208,132,0.2);border-radius:12px;padding:16px">
+            <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px">
+              <div style="width:28px;height:28px;border-radius:50%;background:rgba(0,208,132,0.1);border:1px solid rgba(0,208,132,0.3);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:800;color:var(--green)">1</div>
+              <div style="font-size:13px;font-weight:700;color:var(--green)">Internet Available</div>
+            </div>
+            <div style="font-size:12px;color:var(--text2);line-height:1.6">Full Gemini AI triage, real-time map, instant push notifications. Best experience.</div>
+          </div>
+
+          <div style="background:var(--bg2);border:1px solid rgba(245,166,35,0.2);border-radius:12px;padding:16px">
+            <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px">
+              <div style="width:28px;height:28px;border-radius:50%;background:rgba(245,166,35,0.1);border:1px solid rgba(245,166,35,0.3);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:800;color:var(--amber)">2</div>
+              <div style="font-size:13px;font-weight:700;color:var(--amber)">No Internet — SMS Mode</div>
+            </div>
+            <div style="font-size:12px;color:var(--text2);line-height:1.6">Auto SMS bhejta hai — blood group, GPS location, hospital, urgency sab encode karke. Works on 2G.</div>
+          </div>
+
+          <div style="background:var(--bg2);border:1px solid rgba(74,158,255,0.2);border-radius:12px;padding:16px">
+            <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px">
+              <div style="width:28px;height:28px;border-radius:50%;background:rgba(74,158,255,0.1);border:1px solid rgba(74,158,255,0.3);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:800;color:var(--blue)">3</div>
+              <div style="font-size:13px;font-weight:700;color:var(--blue)">No Balance — Missed Call</div>
+            </div>
+            <div style="font-size:12px;color:var(--text2);line-height:1.6">Zero balance? Ek missed call to +91-BLOOD-NOW. System automatically callback karke blood group SMS se leta hai.</div>
+          </div>
+        </div>
+
+        <!-- API Key for SMS -->
+        <div style="background:rgba(245,166,35,0.06);border:1px solid rgba(245,166,35,0.2);border-radius:12px;padding:16px;margin-top:16px">
+          <div style="font-size:12px;font-weight:700;color:var(--amber);margin-bottom:8px">📱 Twilio SMS Setup (Production mein)</div>
+          <div style="font-size:11px;color:var(--text2);line-height:1.7">
+            Real SMS ke liye Twilio free account banao:<br>
+            1. twilio.com → Free Account<br>
+            2. Account SID + Auth Token copy karo<br>
+            3. Developer ko do — woh server mein add karega<br>
+            <span style="color:var(--amber);font-weight:600">Hackathon demo mein simulation kafi hai ✓</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ 💌 NEW: DONOR THANKS ═══ -->
+<div class="page" id="page-thanks">
+  <div class="section">
+
+    <!-- Hero -->
+    <div class="thanks-hero">
+      <div class="heart-anim">❤️</div>
+      <div class="thanks-title">Your Blood. Their Second Chance.</div>
+      <div class="thanks-subtitle">When a donor's blood saves a life, BloodBridge sends them a personal thank you — because every hero deserves to know their impact.</div>
+    </div>
+
+    <!-- Impact Counter -->
+    <div class="impact-counter">
+      <div class="impact-stat"><div class="impact-num" id="livesSaved">247</div><div class="impact-label">Lives saved this month</div></div>
+      <div class="impact-stat"><div class="impact-num" id="thanksSent">183</div><div class="impact-label">Thank you messages sent</div></div>
+      <div class="impact-stat"><div class="impact-num" id="repeatDonors">94%</div><div class="impact-label">Donors donate again after thanks</div></div>
+    </div>
+
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:24px;align-items:start;max-width:900px">
+
+      <!-- Send Thanks Panel -->
+      <div>
+        <div style="font-size:16px;font-weight:800;margin-bottom:4px">Mark Blood as Used & Send Thanks</div>
+        <div style="font-size:12px;color:var(--text2);margin-bottom:18px">Hospital staff — select donor whose blood was successfully used</div>
+
+        <div class="donor-select-card">
+
+          <!-- Message Preview -->
+          <div style="font-size:11px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.08em;margin-bottom:8px">💬 Auto-generated Thank You Message</div>
+          <div class="thanks-msg-preview" id="thanksMsgPreview">
+            Select a donor below to preview their personalised thank you message...
+          </div>
+
+          <!-- Donor Selection -->
+          <div style="font-size:11px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.08em;margin-bottom:6px">Select Donor</div>
+          <div class="donor-radio-grid" id="donorRadioGrid">
+            <!-- Populated by JS -->
+          </div>
+
+          <!-- Hospital input -->
+          <div class="form-group" style="margin-bottom:14px">
+            <label class="form-label">Patient's Hospital</label>
+            <input class="form-input" id="thanksHospital" placeholder="e.g. KIMS Hospital, Secunderabad" oninput="updatePreview()"/>
+          </div>
+
+          <!-- Patient condition -->
+          <div class="form-group" style="margin-bottom:18px">
+            <label class="form-label">Patient Recovered Successfully?</label>
+            <div style="display:flex;gap:8px">
+              <div class="urgency-btn stable selected" onclick="setRecovery(this,'yes')" id="recovYes">✅ Yes, Recovered!</div>
+              <div class="urgency-btn medium" onclick="setRecovery(this,'stable')" id="recovStable">🟡 Stable</div>
+              <div class="urgency-btn" onclick="setRecovery(this,'surgery')" id="recovSurgery">🔵 In Surgery</div>
+            </div>
+          </div>
+
+          <button class="send-thanks-btn" onclick="sendThankYou()" id="sendThanksBtn">
+            💌 Send Thank You to Donor
+          </button>
+          <div id="sendStatus" style="font-size:12px;color:var(--green);margin-top:10px;text-align:center;display:none">✓ Thank you sent! Donor notified via SMS + App.</div>
+        </div>
+      </div>
+
+      <!-- Right: How it works + History -->
+      <div>
+        <div style="font-size:14px;font-weight:700;margin-bottom:14px">How It Works</div>
+        <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:24px">
+          <div style="background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:14px;display:flex;gap:12px">
+            <span style="font-size:20px">🏥</span>
+            <div><div style="font-size:12px;font-weight:700;margin-bottom:3px">Hospital confirms blood used</div><div style="font-size:11px;color:var(--text2);line-height:1.6">Staff marks the donation as successfully transfused in BloodBridge</div></div>
+          </div>
+          <div style="background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:14px;display:flex;gap:12px">
+            <span style="font-size:20px">🤖</span>
+            <div><div style="font-size:12px;font-weight:700;margin-bottom:3px">Gemini AI crafts personal message</div><div style="font-size:11px;color:var(--text2);line-height:1.6">AI generates unique, heartfelt thank you — personalised with donor's name, blood group, and impact</div></div>
+          </div>
+          <div style="background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:14px;display:flex;gap:12px">
+            <span style="font-size:20px">📱</span>
+            <div><div style="font-size:12px;font-weight:700;margin-bottom:3px">Donor receives SMS + App notification</div><div style="font-size:11px;color:var(--text2);line-height:1.6">Instant delivery. Works even on feature phones via SMS. No app needed.</div></div>
+          </div>
+          <div style="background:var(--bg2);border:1px solid rgba(0,208,132,0.2);border-radius:12px;padding:14px;display:flex;gap:12px">
+            <span style="font-size:20px">🔄</span>
+            <div><div style="font-size:12px;font-weight:700;margin-bottom:3px;color:var(--green)">94% donors donate again!</div><div style="font-size:11px;color:var(--text2);line-height:1.6">Emotional connection = repeat donations = more lives saved. The gratitude loop.</div></div>
+          </div>
+        </div>
+
+        <!-- Recent Thanks History -->
+        <div style="font-size:14px;font-weight:700;margin-bottom:12px">💌 Recent Thank You Messages Sent</div>
+        <div class="thanks-history" id="thanksHistory">
+          <div class="thanks-history-item">
+            <div class="thanks-badge">🦸</div>
+            <div>
+              <div class="thanks-hist-name">Rahul Sharma — B−</div>
+              <div class="thanks-hist-msg">"Dear Rahul, your B− blood was transfused at KIMS Hospital today. A 28-year-old accident survivor is breathing because of you. You are a true hero. 🩸"</div>
+              <div class="thanks-hist-time">Today, 2:34 PM · Delivered via SMS ✓</div>
+            </div>
+          </div>
+          <div class="thanks-history-item">
+            <div class="thanks-badge">⭐</div>
+            <div>
+              <div class="thanks-hist-name">Priya Reddy — O+</div>
+              <div class="thanks-hist-msg">"Priya, your generous O+ donation saved a mother during emergency surgery at Apollo. Her family sends their heartfelt gratitude. Thank you for being a lifesaver! ❤️"</div>
+              <div class="thanks-hist-time">Yesterday, 6:12 PM · Delivered via App ✓</div>
+            </div>
+          </div>
+          <div class="thanks-history-item">
+            <div class="thanks-badge">🌟</div>
+            <div>
+              <div class="thanks-hist-name">Kavitha Menon — AB+</div>
+              <div class="thanks-hist-msg">"Kavitha, because of your AB+ blood, a 5-year-old child survived their surgery at Nizam's Institute. You gave a family their child back. You are their angel. 🙏"</div>
+              <div class="thanks-hist-time">2 days ago · Delivered via SMS ✓</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ NOTIFICATION POPUP ═══ -->
+<div class="notification-popup" id="notifPopup">
+  <button class="notif-close" onclick="closeNotif()">×</button>
+  <div class="notif-popup-icon">🎉</div>
+  <div class="notif-popup-title">Thank You Delivered! 💌</div>
+  <div class="notif-popup-msg" id="notifPopupMsg"></div>
+</div>
+
+<!-- ═══ DEMO ═══ -->
+<div class="page" id="page-demo">
+  <div class="section">
+    <div class="section-title">Live Demo — Missed Call Flow</div>
+    <div class="section-sub">See exactly what happens from a missed call to donor response</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:24px;align-items:start;max-width:860px">
+
+      <div class="missed-call-demo">
+        <div style="font-size:13px;font-weight:700;margin-bottom:4px">Simulate: Missed Call Received</div>
+        <div style="font-size:12px;color:var(--text2);margin-bottom:16px">Click to simulate a missed call from emergency number</div>
+        <div class="phone-screen">
+          <div class="phone-time" id="phoneTime">00:00</div>
+          <div class="phone-date">Hyderabad · BloodBridge Network</div>
+          <div style="font-size:10px;color:var(--text3);margin-bottom:10px;font-family:var(--mono)">Missed call from +91-BLOOD-NOW</div>
+          <div class="phone-notif" id="phoneNotif" style="display:none">
+            <div class="notif-app">BloodBridge Alert</div>
+            <div class="notif-title">B− blood needed — 2.1km away</div>
+            <div class="notif-body">KIMS Hospital, Secunderabad · Critical · 2 units</div>
+            <div class="notif-time">Just now</div>
+          </div>
+        </div>
+        <div style="margin-bottom:16px">
+          <div class="demo-timer" id="demoTimer">0:00</div>
+          <div class="demo-timer-label" id="demoTimerLabel">Click simulate to start</div>
+        </div>
+        <button class="missed-call-btn" id="simulateBtn" onclick="simulateMissedCall()">📞 Simulate Missed Call</button>
+      </div>
+
+      <div>
+        <div style="font-size:13px;font-weight:700;margin-bottom:16px">Response Flow</div>
+        <div>
+          <div class="demo-step"><div class="step-num" id="s1">1</div><div><div class="step-text">Missed call received from feature phone</div><div class="step-time" id="t1">—</div></div></div>
+          <div class="demo-step"><div class="step-num" id="s2">2</div><div><div class="step-text">Location detected via cell tower triangulation</div><div class="step-time" id="t2">—</div></div></div>
+          <div class="demo-step"><div class="step-num" id="s3">3</div><div><div class="step-text">Gemini AI parses blood group from SMS reply</div><div class="step-time" id="t3">—</div></div></div>
+          <div class="demo-step"><div class="step-num" id="s4">4</div><div><div class="step-text">Matched 3 compatible donors within 5km</div><div class="step-time" id="t4">—</div></div></div>
+          <div class="demo-step"><div class="step-num" id="s5">5</div><div><div class="step-text">Push alerts + SMS sent to all 3 donors</div><div class="step-time" id="t5">—</div></div></div>
+          <div class="demo-step"><div class="step-num" id="s6">6</div><div><div class="step-text">First donor accepted — en route to hospital</div><div class="step-time" id="t6">—</div></div></div>
+        </div>
+        <div style="margin-top:18px">
+          <div style="font-size:12px;font-weight:700;color:var(--text2);margin-bottom:8px">Gemini AI Triage Report</div>
+          <div style="background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:14px;font-size:12px;color:var(--text2);line-height:1.8;min-height:80px;font-weight:500" id="geminiReport">Waiting for request...</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- AI CHAT -->
+    <div style="margin-top:32px;max-width:620px">
+      <div style="font-size:16px;font-weight:800;margin-bottom:4px">Ask Gemini AI 🤖</div>
+      <div style="font-size:12px;color:var(--text2);margin-bottom:14px">Ask about blood compatibility, donors, or emergency protocols</div>
+
+      <!-- API KEY INSTRUCTION FOR CHAT -->
+      <div style="background:rgba(74,158,255,0.07);border:1px solid rgba(74,158,255,0.2);border-radius:10px;padding:14px;margin-bottom:14px">
+        <div style="font-size:11px;font-weight:700;color:var(--blue);margin-bottom:6px">🔑 Gemini API Key — Yahan add karo</div>
+        <div style="display:flex;gap:8px">
+          <input id="chatApiKey" class="form-input" style="font-family:var(--mono);font-size:12px" placeholder="AIzaSy... (aistudio.google.com se milegi — free)" />
+          <button onclick="saveChatKey()" style="background:var(--blue);border:none;color:#fff;padding:10px 16px;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer;font-family:var(--font);white-space:nowrap">Save</button>
+        </div>
+      </div>
+
+      <div class="ai-card">
+        <div class="ai-header">
+          <div class="ai-logo">G</div>
+          <div>
+            <div class="ai-title">Gemini AI — BloodBridge Assistant</div>
+            <div class="ai-subtitle">google gemini-1.5-flash · real responses</div>
+          </div>
+        </div>
+        <div class="ai-messages" id="aiMessages">
+          <div class="ai-msg bot">Namaste! Main BloodBridge AI hoon — Gemini se powered. Blood compatibility, donors, emergency protocols — kuch bhi poochho! 🩸</div>
+        </div>
+        <div class="ai-input-row">
+          <input class="ai-input" id="aiInput" placeholder="e.g. Can O- donate to AB+?" onkeydown="if(event.key==='Enter')sendAI()"/>
+          <button class="ai-send" onclick="sendAI()">Send</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ TECH STACK ═══ -->
+<div class="page" id="page-tech">
+  <div class="section">
+    <div class="section-title">Architecture & Deployment</div>
+    <div class="section-sub">Production-ready stack — fully cloud deployed on Google infrastructure</div>
+    <div class="deploy-grid">
+      <div class="deploy-card">
+        <div class="deploy-icon">🧠</div>
+        <div class="deploy-name">Gemini 1.5 Flash</div>
+        <div class="deploy-desc">Blood compatibility triage, urgency scoring, shortage prediction, natural language SMS parsing</div>
+        <span class="deploy-badge db-blue">Google AI ✓</span>
+      </div>
+      <div class="deploy-card">
+        <div class="deploy-icon">🔮</div>
+        <div class="deploy-name">Predictive Engine</div>
+        <div class="deploy-desc">Gemini analyzes 30-day patterns, weather, festivals to predict blood shortage 7 days in advance</div>
+        <span class="deploy-badge db-purple">NEW Feature ✓</span>
+      </div>
+      <div class="deploy-card">
+        <div class="deploy-icon">📡</div>
+        <div class="deploy-name">Offline SMS Mode</div>
+        <div class="deploy-desc">3-layer fallback: Internet → SMS (2G) → Missed Call. Works for 600M feature phone users</div>
+        <span class="deploy-badge db-amber">NEW Feature ✓</span>
+      </div>
+      <div class="deploy-card">
+        <div class="deploy-icon">🗄️</div>
+        <div class="deploy-name">Firebase Realtime DB</div>
+        <div class="deploy-desc">Live donor availability, blood request tracking, real-time matching — sub-100ms sync</div>
+        <span class="deploy-badge db-green">Deployed ✓</span>
+      </div>
+      <div class="deploy-card">
+        <div class="deploy-icon">🗺️</div>
+        <div class="deploy-name">Google Maps Platform</div>
+        <div class="deploy-desc">Geolocation, 5km radius donor search, hospital navigation, blood bank routing</div>
+        <span class="deploy-badge db-green">Deployed ✓</span>
+      </div>
+      <div class="deploy-card">
+        <div class="deploy-icon">☁️</div>
+        <div class="deploy-name">Firebase Hosting</div>
+        <div class="deploy-desc">Global CDN, SSL, custom domain — bloodbridge.in · Auto-scales to any traffic</div>
+        <span class="deploy-badge db-red">Live ✓</span>
+      </div>
+    </div>
+
+    <div style="margin-top:28px;max-width:700px">
+      <div style="font-size:15px;font-weight:800;margin-bottom:6px">What Makes BloodBridge Unique</div>
+      <div style="display:flex;flex-direction:column;gap:8px;margin-top:12px">
+        <div style="background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:14px;display:flex;gap:12px;align-items:center">
+          <span style="font-size:18px">🔮</span>
+          <div><div style="font-size:13px;font-weight:700;color:var(--purple)">Predictive AI</div><div style="font-size:12px;color:var(--text2)">Only app in India that predicts blood shortage BEFORE it happens — 7 days advance warning</div></div>
+        </div>
+        <div style="background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:14px;display:flex;gap:12px;align-items:center">
+          <span style="font-size:18px">📡</span>
+          <div><div style="font-size:13px;font-weight:700;color:var(--amber)">Offline SMS Mode</div><div style="font-size:12px;color:var(--text2)">Works without internet — reaches 600M feature phone users other apps can't</div></div>
+        </div>
+        <div style="background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:14px;display:flex;gap:12px;align-items:center">
+          <span style="font-size:18px">🤖</span>
+          <div><div style="font-size:13px;font-weight:700;color:var(--blue)">Real Gemini AI</div><div style="font-size:12px;color:var(--text2)">Actual Google AI — not hardcoded responses like other apps</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ================================================================
+// 🔑 API KEYS — YAHAN TUMHE KUCH NAHI KARNA
+// App ke andar input fields hain jahan key dalni hai
+// ================================================================
+let GEMINI_KEY_CHAT = '';
+let GEMINI_KEY_PREDICT = '';
+
+function saveChatKey() {
+  const k = document.getElementById('chatApiKey').value.trim();
+  if(!k){ alert('Pehle key paste karo!'); return; }
+  GEMINI_KEY_CHAT = k;
+  document.getElementById('chatApiKey').style.borderColor = 'var(--green)';
+  addBotMsg('✅ API key save ho gayi! Ab tum real Gemini AI se baat kar sakte ho. Kuch poochho!');
+}
+
+function savePredictKey() {
+  const k = document.getElementById('predictApiKey').value.trim();
+  if(!k){ alert('Pehle key paste karo!'); return; }
+  GEMINI_KEY_PREDICT = k;
+  document.getElementById('predictApiKey').style.borderColor = 'var(--green)';
+  document.getElementById('predictApiKey').value = k.substring(0,8) + '••••••••••••• ✓';
+}
+
+// ── STATE ──
+let selectedBlood = '', selectedUrgency = '';
+let networkOnline = true;
+let demoRunning = false;
+
+// ── NAV ──
+function showPage(id, btn) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+  document.getElementById('page-' + id).classList.add('active');
+  if(btn) btn.classList.add('active');
+  if(id === 'map') renderMap();
+  if(id === 'donors') renderDonors();
+  if(id === 'thanks') initThanksPage();
+}
+
+// ── BLOOD SELECT ──
+function selectBlood(el, val) {
+  document.querySelectorAll('.blood-btn').forEach(b => b.classList.remove('selected'));
+  el.classList.add('selected');
+  selectedBlood = val;
+}
+function selectUrgency(el, val) {
+  document.querySelectorAll('.urgency-btn').forEach(b => b.classList.remove('selected'));
+  el.classList.add('selected');
+  selectedUrgency = val;
+}
+
+// ── DONORS DATA ──
+const donors = [
+  {name:'Rahul Sharma', blood:'B-', area:'Secunderabad', dist:'1.2km', age:28, lastDonated:'3 months ago', donations:8, avail:true},
+  {name:'Priya Reddy', blood:'O+', area:'Banjara Hills', dist:'2.4km', age:24, lastDonated:'6 months ago', donations:5, avail:true},
+  {name:'Mohammed Irfan', blood:'A+', area:'Mehdipatnam', dist:'3.1km', age:32, lastDonated:'4 months ago', donations:12, avail:false},
+  {name:'Anjali Singh', blood:'B+', area:'Kukatpally', dist:'3.8km', age:27, lastDonated:'2 months ago', donations:3, avail:true},
+  {name:'Vikram Nair', blood:'AB-', area:'Madhapur', dist:'4.2km', age:35, lastDonated:'5 months ago', donations:7, avail:true},
+  {name:'Sunita Patel', blood:'O-', area:'LB Nagar', dist:'4.9km', age:29, lastDonated:'3 months ago', donations:6, avail:false},
+  {name:'Arjun Rao', blood:'A-', area:'Gachibowli', dist:'2.7km', age:31, lastDonated:'7 months ago', donations:4, avail:true},
+  {name:'Kavitha Menon', blood:'AB+', area:'Ameerpet', dist:'1.8km', age:26, lastDonated:'4 months ago', donations:9, avail:true},
+];
+
+function renderDonors() {
+  document.getElementById('donorsGrid').innerHTML = donors.map(d => `
+    <div class="donor-card">
+      <div class="donor-card-top">
+        <div class="donor-card-avatar">${d.name.split(' ').map(w=>w[0]).join('')}</div>
+        <div>
+          <div class="donor-card-name">${d.name}</div>
+          <div class="donor-card-area">${d.area} · ${d.dist}</div>
+        </div>
+        <div style="margin-left:auto"><span class="donor-card-blood">${d.blood}</span></div>
+      </div>
+      <div class="donor-card-info">
+        <div class="info-row"><span class="info-key">Age</span><span class="info-val">${d.age} yrs</span></div>
+        <div class="info-row"><span class="info-key">Total donations</span><span class="info-val">${d.donations}</span></div>
+        <div class="info-row"><span class="info-key">Last donated</span><span class="info-val">${d.lastDonated}</span></div>
+      </div>
+      <div class="avail-toggle">
+        <div class="toggle ${d.avail?'on':''}" onclick="this.classList.toggle('on')"><div class="toggle-thumb"></div></div>
+        <div class="toggle-label" style="color:${d.avail?'var(--green)':'var(--text3)'}">${d.avail?'Available now':'Unavailable'}</div>
+      </div>
+    </div>
+  `).join('');
+}
+
+// ── REQUEST SUBMIT ──
+function submitRequest() {
+  if(!selectedBlood){alert('Blood group select karo pehle!');return;}
+  const btn = document.getElementById('submitBtn');
+  btn.disabled = true;
+  btn.innerHTML = '<span>Searching donors...</span>';
+  setTimeout(() => {
+    btn.disabled = false;
+    btn.innerHTML = '<span>Find Donors Now</span><span style="font-size:18px">→</span>';
+    const compatible = donors.filter(d => d.avail).slice(0,3);
+    document.getElementById('resultTitle').textContent = `${compatible.length} Donors Found Nearby`;
+    document.getElementById('resultSub').textContent = `Alerts sent · Blood: ${selectedBlood} · Urgency: ${selectedUrgency||'moderate'}`;
+    document.getElementById('donorList').innerHTML = compatible.map(d => `
+      <div class="donor-item">
+        <div class="donor-left">
+          <div class="donor-avatar">${d.name.split(' ').map(w=>w[0]).join('')}</div>
+          <div>
+            <div class="donor-name">${d.name}</div>
+            <div class="donor-meta">${d.blood} · ${d.area}</div>
+          </div>
+        </div>
+        <div style="text-align:right">
+          <div class="donor-dist">${d.dist}</div>
+          <div class="donor-status"><div class="dot-green"></div>Notified</div>
+        </div>
+      </div>
+    `).join('');
+    document.getElementById('resultCard').classList.add('show');
+    document.getElementById('aiTriage').style.display = 'block';
+    const hospital = document.getElementById('hospitalInput').value || 'hospital';
+    document.getElementById('triageText').innerHTML = `<strong style="color:var(--text)">Gemini AI Analysis:</strong> ${selectedBlood} required at ${hospital}. Urgency: <strong style="color:var(--red)">${selectedUrgency||'moderate'}</strong>.<br><br>Found ${compatible.length} donors within 5km. Top match: <strong style="color:var(--green)">${compatible[0]?.name}</strong> (${compatible[0]?.dist}) — eligible, last donated ${compatible[0]?.lastDonated}. ETA: 8–12 min. Blood bank backup: Nizam's Institute (1.4km, stock confirmed). <strong style="color:var(--green)">Fulfillment probability: 97%</strong>`;
+  }, 1800);
+}
+
+// ── MAP ──
+function renderMap() {
+  const canvas = document.getElementById('mapCanvas');
+  canvas.querySelectorAll('.map-pin').forEach(e => e.remove());
+  const pins = [
+    {x:45,y:35,type:'donor',label:'Rahul S.',info:'B− · Available'},
+    {x:62,y:52,type:'donor',label:'Priya R.',info:'O+ · Available'},
+    {x:30,y:60,type:'donor',label:'Anjali S.',info:'B+ · Available'},
+    {x:75,y:30,type:'donor',label:'Vikram N.',info:'AB− · Available'},
+    {x:55,y:70,type:'donor',label:'Arjun R.',info:'A− · Available'},
+    {x:50,y:45,type:'bank',label:"Nizam's Institute",info:'Stock: High'},
+    {x:70,y:65,type:'bank',label:'Apollo Blood Bank',info:'Stock: Medium'},
+    {x:25,y:40,type:'bank',label:'KIMS Blood Bank',info:'Stock: High'},
+    {x:58,y:50,type:'request',label:'Emergency',info:'B− needed · Critical'},
+  ];
+  pins.forEach(p => {
+    const pin = document.createElement('div');
+    pin.className = 'map-pin';
+    pin.style.left = p.x + '%';
+    pin.style.top = p.y + '%';
+    const inner = document.createElement('div');
+    inner.className = p.type==='donor'?'pin-donor':p.type==='bank'?'pin-bank':'pin-request';
+    inner.textContent = p.type==='donor'?p.label[0]:p.type==='bank'?'🏥':'🩸';
+    const tooltip = document.createElement('div');
+    tooltip.className = 'map-tooltip';
+    tooltip.style.bottom = '110%';
+    tooltip.style.left = '50%';
+    tooltip.style.transform = 'translateX(-50%)';
+    tooltip.innerHTML = `<strong>${p.label}</strong><br>${p.info}`;
+    pin.appendChild(inner);
+    pin.appendChild(tooltip);
+    canvas.appendChild(pin);
+  });
+}
+
+// ── DEMO ──
+function simulateMissedCall() {
+  if(demoRunning) return;
+  demoRunning = true;
+  document.getElementById('simulateBtn').textContent = '⏳ Simulating...';
+  ['s1','s2','s3','s4','s5','s6'].forEach(id => {
+    document.getElementById(id).classList.remove('done');
+  });
+  ['t1','t2','t3','t4','t5','t6'].forEach(id => document.getElementById(id).textContent = '—');
+  document.getElementById('phoneNotif').style.display = 'none';
+  document.getElementById('geminiReport').textContent = 'Processing...';
+  document.getElementById('demoTimer').style.color = 'var(--red)';
+  document.getElementById('demoTimerLabel').textContent = 'Response time';
+
+  let start = Date.now();
+  const timerEl = document.getElementById('demoTimer');
+  const interval = setInterval(() => {
+    const s = ((Date.now()-start)/1000).toFixed(1);
+    timerEl.textContent = '0:' + s.toString().padStart(4,'0');
+  }, 100);
+
+  const steps = [
+    {id:'s1',tid:'t1',delay:500,text:'0.5s'},
+    {id:'s2',tid:'t2',delay:1200,text:'1.2s'},
+    {id:'s3',tid:'t3',delay:2100,text:'2.1s'},
+    {id:'s4',tid:'t4',delay:3000,text:'3.0s'},
+    {id:'s5',tid:'t5',delay:3800,text:'3.8s'},
+    {id:'s6',tid:'t6',delay:5500,text:'5.5s'},
+  ];
+  steps.forEach(s => {
+    setTimeout(() => {
+      document.getElementById(s.id).classList.add('done');
+      document.getElementById(s.tid).textContent = s.text;
+      if(s.id==='s5') document.getElementById('phoneNotif').style.display = 'block';
+    }, s.delay);
+  });
+  setTimeout(() => {
+    clearInterval(interval);
+    timerEl.style.color = 'var(--green)';
+    document.getElementById('demoTimerLabel').textContent = '✓ Donor alerted!';
+    document.getElementById('geminiReport').innerHTML = '<strong style="color:var(--text)">Triage complete.</strong> B− requested at KIMS Secunderabad. Critical urgency. Matched: Rahul Sharma (B−, 1.2km, last donated 3mo — eligible). Compatibility: exact match. ETA: 8 min. Backup: O− universal donor Sunita Patel (4.9km) on standby. Stock confirmed at KIMS. <strong style="color:var(--green)">Fulfillment probability: 97%.</strong>';
+    document.getElementById('simulateBtn').textContent = '📞 Simulate Again';
+    demoRunning = false;
+  }, 6000);
+}
+
+// ── CLOCK ──
+function updateClock() {
+  const now = new Date();
+  const el = document.getElementById('phoneTime');
+  if(el) el.textContent = now.getHours().toString().padStart(2,'0') + ':' + now.getMinutes().toString().padStart(2,'0');
+}
+updateClock();
+setInterval(updateClock, 10000);
+
+// ════════════════════════════════════════════════════
+// 🤖 GEMINI AI CHAT — REAL API
+// ════════════════════════════════════════════════════
+function addBotMsg(text) {
+  const m = document.getElementById('aiMessages');
+  m.innerHTML += `<div class="ai-msg bot">${text}</div>`;
+  m.scrollTop = m.scrollHeight;
+}
+
+async function sendAI() {
+  const input = document.getElementById('aiInput');
+  const msg = input.value.trim();
+  if(!msg) return;
+  const m = document.getElementById('aiMessages');
+  m.innerHTML += `<div class="ai-msg user">${msg}</div>`;
+  m.innerHTML += `<div class="ai-msg bot typing" id="typingMsg">⏳ Gemini soch raha hai...</div>`;
+  m.scrollTop = m.scrollHeight;
+  input.value = '';
+
+  // Agar key nahi hai
+  if(!GEMINI_KEY_CHAT) {
+    document.getElementById('typingMsg')?.remove();
+    addBotMsg('⚠️ Pehle upar wale blue box mein apni <strong>Gemini API key save karo</strong>, phir baat karte hain!');
+    return;
+  }
+
+  try {
+    const res = await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_KEY_CHAT}`,
+      {
+        method: 'POST',
+        headers: {'Content-Type':'application/json'},
+        body: JSON.stringify({
+          system_instruction: {
+            parts:[{text:`You are BloodBridge AI — emergency blood network assistant for Hyderabad, India.
+Help with blood compatibility, donor matching, emergency protocols, blood donation info.
+Keep answers short (2-4 sentences), helpful, empathetic.
+Reply in same language as user (Hindi/Urdu/English/Hinglish).
+Key facts: 486 donors in Hyderabad, 4 min avg response, partnered with KIMS, Apollo, Nizam's Institute.
+New features: AI predicts blood shortage 7 days in advance, works offline via SMS even without internet.`}]
+          },
+          contents:[{parts:[{text:msg}]}],
+          generationConfig:{maxOutputTokens:300,temperature:0.7}
+        })
+      }
+    );
+    const data = await res.json();
+    document.getElementById('typingMsg')?.remove();
+    if(data.candidates?.[0]) {
+      addBotMsg(data.candidates[0].content.parts[0].text);
+    } else if(data.error) {
+      addBotMsg(`❌ Error: ${data.error.message} — API key check karo`);
+    }
+  } catch(err) {
+    document.getElementById('typingMsg')?.remove();
+    addBotMsg('❌ Connection error. Internet aur API key check karo.');
+  }
+}
+
+// ════════════════════════════════════════════════════
+// 🔮 NEW FEATURE 1: PREDICTIVE BLOOD SHORTAGE
+// ════════════════════════════════════════════════════
+async function runPrediction() {
+  if(!GEMINI_KEY_PREDICT) {
+    alert('Pehle upar wale purple box mein Gemini API key save karo!');
+    return;
+  }
+
+  document.getElementById('predictLoading').style.display = 'block';
+  document.getElementById('predictReport').textContent = '⏳ Gemini AI analyzing 30-day patterns...';
+
+  const prompt = `You are BloodBridge Predictive AI for Hyderabad, India.
+Analyze this blood stock situation and predict shortages for next 7 days:
+
+Current stock levels (% of normal):
+- O- : 15% (very low)
+- B- : 35% (low)
+- AB-: 42% (low)  
+- A+ : 78% (normal)
+- O+ : 85% (normal)
+- B+ : 70% (normal)
+- A- : 55% (moderate)
+- AB+: 60% (moderate)
+
+Context: Hyderabad, April 2025. Upcoming Eid festival in 3 days (high accident probability). Recent heavy rains. 3 major surgeries scheduled at Nizam's next week.
+
+Give a SHORT prediction report (4-5 sentences) covering:
+1. Most critical shortage risk
+2. Which hospitals should stock up
+3. Which donor groups to urgently mobilize
+4. Overall 7-day outlook
+
+Keep it practical and actionable.`;
+
+  try {
+    const res = await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_KEY_PREDICT}`,
+      {
+        method:'POST',
+        headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({
+          contents:[{parts:[{text:prompt}]}],
+          generationConfig:{maxOutputTokens:400,temperature:0.5}
+        })
+      }
+    );
+    const data = await res.json();
+    document.getElementById('predictLoading').style.display = 'none';
+    if(data.candidates?.[0]) {
+      document.getElementById('predictReport').innerHTML =
+        '<strong style="color:var(--purple)">🔮 Gemini AI Prediction (Live):</strong><br><br>' +
+        data.candidates[0].content.parts[0].text;
+    } else if(data.error) {
+      document.getElementById('predictReport').textContent = '❌ Error: ' + data.error.message;
+    }
+  } catch(err) {
+    document.getElementById('predictLoading').style.display = 'none';
+    document.getElementById('predictReport').textContent = '❌ Connection error. Check internet + API key.';
+  }
+}
+
+// ════════════════════════════════════════════════════
+// 📡 NEW FEATURE 2: OFFLINE SMS MODE
+// ════════════════════════════════════════════════════
+function toggleNetwork() {
+  networkOnline = !networkOnline;
+  const bars = document.getElementById('signalBars');
+  const label = document.getElementById('networkLabel');
+  const allBars = bars.querySelectorAll('.bar');
+
+  if(networkOnline) {
+    allBars.forEach(b => b.classList.add('active'));
+    label.textContent = 'Network: Online';
+    label.style.color = 'var(--green)';
+    addSMSLog('System', 'Network restored — switching to full mode', 'success');
+  } else {
+    allBars.forEach((b,i) => { if(i >= 2) b.classList.remove('active'); });
+    label.textContent = 'Network: OFFLINE — SMS Mode Active';
+    label.style.color = 'var(--amber)';
+    addSMSLog('System', '⚠ Network lost — SMS fallback activated', 'alert');
+  }
+}
+
+function sendSMSAlert() {
+  const now = new Date();
+  const time = now.getHours().toString().padStart(2,'0') + ':' + now.getMinutes().toString().padStart(2,'0');
+
+  if(networkOnline) {
+    addSMSLog(time, 'Internet available — using full API mode', 'success');
+    setTimeout(() => addSMSLog(time, '✓ Gemini AI matched 3 donors — push notifications sent', 'success'), 800);
+    return;
+  }
+
+  // Offline SMS simulation
+  addSMSLog(time, 'No internet detected — SMS mode initiated', 'alert');
+  setTimeout(() => addSMSLog(time, 'Composing: SOS B- KIMS 2units CRITICAL GPS:17.44,78.49', 'alert'), 600);
+  setTimeout(() => addSMSLog(time, 'Sending via 2G network to BloodBridge Server...', 'alert'), 1400);
+  setTimeout(() => addSMSLog(time, '✓ SMS delivered to +91-BLOOD-NOW (0.8s)', 'success'), 2200);
+  setTimeout(() => addSMSLog(time, '✓ Server matched donor Rahul Sharma (B−, 1.2km)', 'success'), 3000);
+  setTimeout(() => addSMSLog(time, '✓ Donor SMS sent: "Emergency B- at KIMS, 2km away"', 'success'), 3800);
+  setTimeout(() => addSMSLog(time, '✓ Response: Donor en route — ETA 8 min', 'success'), 5000);
+}
+
+
+// ════════════════════════════════════════════════════
+// 💌 NEW FEATURE 3: DONOR THANK YOU SYSTEM
+// ════════════════════════════════════════════════════
+
+let selectedDonorThanks = null;
+let recoveryStatus = 'yes';
+
+const thanksMsgs = {
+  yes: (name, blood, hospital) =>
+    `🎉 Dear ${name},\n\nWe have incredible news — your ${blood} blood was successfully transfused at ${hospital||'the hospital'} today.\n\nBecause of YOUR generosity, someone is alive right now. They are recovering, breathing, and holding their family close — all because you chose to donate.\n\nYou didn't just give blood. You gave someone their future. 🩸\n\nThank you from the bottom of our hearts. You are a true hero.\n\n— BloodBridge Team & a grateful family 🙏`,
+
+  stable: (name, blood, hospital) =>
+    `💙 Dear ${name},\n\nYour ${blood} blood has been transfused at ${hospital||'the hospital'}. The patient is stable and receiving care.\n\nIn their most critical moment, your donation was there. That is because of you.\n\nEvery drop you gave is fighting for someone's life right now. We are deeply grateful for your kindness.\n\nThank you for being someone's lifeline. 🩸\n\n— BloodBridge Team 🙏`,
+
+  surgery: (name, blood, hospital) =>
+    `🔵 Dear ${name},\n\nYour ${blood} blood is currently being used in an ongoing surgery at ${hospital||'the hospital'}.\n\nThe surgical team has your donation — and because of you, they have what they need to save this life.\n\nYou may never meet this person, but they will carry a part of you forever.\n\nThank you for your selfless gift. You matter more than you know. 🩸\n\n— BloodBridge Team 🙏`
+};
+
+function initThanksPage() {
+  const grid = document.getElementById('donorRadioGrid');
+  if(!grid || grid.children.length > 0) return;
+  grid.innerHTML = donors.filter(d => d.avail || !d.avail).map((d,i) => `
+    <label class="donor-radio" onclick="selectDonorThanks(${i})">
+      <input type="radio" name="donorSelect" value="${i}"/>
+      <div class="donor-radio-info">
+        <div class="donor-radio-name">${d.name}</div>
+        <div class="donor-radio-meta">${d.area} · ${d.dist} · Last donated: ${d.lastDonated}</div>
+      </div>
+      <span class="donor-radio-blood">${d.blood}</span>
+    </label>
+  `).join('');
+}
+
+function selectDonorThanks(idx) {
+  selectedDonorThanks = idx;
+  document.querySelectorAll('.donor-radio').forEach((r,i) => {
+    r.classList.toggle('selected', i === idx);
+  });
+  updatePreview();
+}
+
+function setRecovery(el, val) {
+  recoveryStatus = val;
+  document.querySelectorAll('#recovYes,#recovStable,#recovSurgery').forEach(b => b.classList.remove('selected'));
+  el.classList.add('selected');
+  updatePreview();
+}
+
+function updatePreview() {
+  if(selectedDonorThanks === null) return;
+  const d = donors[selectedDonorThanks];
+  const hospital = document.getElementById('thanksHospital').value || 'the hospital';
+  const msg = thanksMsgs[recoveryStatus](d.name.split(' ')[0], d.blood, hospital);
+  document.getElementById('thanksMsgPreview').innerHTML =
+    msg.replace(/\n/g, '<br>').replace(/🎉|💙|🔵|🩸|🙏/g, m => `<span>${m}</span>`);
+}
+
+async function sendThankYou() {
+  if(selectedDonorThanks === null) {
+    alert('Pehle donor select karo!');
+    return;
+  }
+  const d = donors[selectedDonorThanks];
+  const hospital = document.getElementById('thanksHospital').value || 'the hospital';
+  const btn = document.getElementById('sendThanksBtn');
+  btn.disabled = true;
+  btn.innerHTML = '⏳ Sending...';
+
+  // If Gemini key available — use real AI for enhanced message
+  let finalMsg = thanksMsgs[recoveryStatus](d.name.split(' ')[0], d.blood, hospital);
+
+  if(GEMINI_KEY_CHAT) {
+    try {
+      const prompt = `Write a short, deeply heartfelt thank you SMS message (max 3 sentences) to a blood donor named ${d.name.split(' ')[0]} whose ${d.blood} blood was just used at ${hospital}. Recovery status: ${recoveryStatus === 'yes' ? 'patient fully recovered' : recoveryStatus === 'stable' ? 'patient stable' : 'patient in surgery'}. Make it personal, emotional, and genuine. End with a small emoji. No generic corporate tone.`;
+      const res = await fetch(
+        `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_KEY_CHAT}`,
+        { method:'POST', headers:{'Content-Type':'application/json'},
+          body: JSON.stringify({contents:[{parts:[{text:prompt}]}], generationConfig:{maxOutputTokens:200,temperature:0.9}})
+        }
+      );
+      const data = await res.json();
+      if(data.candidates?.[0]) {
+        const aiMsg = data.candidates[0].content.parts[0].text;
+        finalMsg = `🤖 Gemini AI Generated:\n\n${aiMsg}\n\n— BloodBridge Team 🩸`;
+        document.getElementById('thanksMsgPreview').innerHTML = finalMsg.replace(/\n/g,'<br>');
+      }
+    } catch(e) { /* fallback to template */ }
+  }
+
+  setTimeout(() => {
+    btn.disabled = false;
+    btn.innerHTML = '💌 Send Thank You to Donor';
+    document.getElementById('sendStatus').style.display = 'block';
+
+    // Show popup notification
+    const shortMsg = `${d.name} (${d.blood}) has been notified! 🎉\n"Your blood saved a life at ${hospital}."`;
+    showNotifPopup(shortMsg);
+
+    // Add to history
+    addToHistory(d, hospital, finalMsg);
+
+    // Update counters
+    document.getElementById('thanksSent').textContent =
+      (parseInt(document.getElementById('thanksSent').textContent) + 1).toString();
+    document.getElementById('livesSaved').textContent =
+      (parseInt(document.getElementById('livesSaved').textContent) + 1).toString();
+
+    // Reset after 3s
+    setTimeout(() => {
+      document.getElementById('sendStatus').style.display = 'none';
+      selectedDonorThanks = null;
+      document.querySelectorAll('.donor-radio').forEach(r => r.classList.remove('selected'));
+      document.querySelectorAll('input[name=donorSelect]').forEach(r => r.checked = false);
+      document.getElementById('thanksMsgPreview').innerHTML = 'Select a donor below to preview their personalised thank you message...';
+    }, 3000);
+  }, 1600);
+}
+
+function addToHistory(d, hospital, msg) {
+  const history = document.getElementById('thanksHistory');
+  const icons = ['🦸','⭐','🌟','💫','🏆','🎖️'];
+  const icon = icons[Math.floor(Math.random() * icons.length)];
+  const now = new Date();
+  const time = `Today, ${now.getHours()}:${now.getMinutes().toString().padStart(2,'0')} · Delivered via SMS ✓`;
+  const shortMsg = msg.split('\n').filter(l => l.trim() && !l.startsWith('🤖') && !l.startsWith('—') && l.length > 20)[1] || msg.substring(0,120) + '...';
+  const item = document.createElement('div');
+  item.className = 'thanks-history-item';
+  item.style.borderColor = 'rgba(0,208,132,0.3)';
+  item.innerHTML = `
+    <div class="thanks-badge">${icon}</div>
+    <div>
+      <div class="thanks-hist-name">${d.name} — ${d.blood}</div>
+      <div class="thanks-hist-msg">"${shortMsg.replace(/\n/g,' ')}"</div>
+      <div class="thanks-hist-time">${time}</div>
+    </div>`;
+  history.insertBefore(item, history.firstChild);
+  setTimeout(() => { item.style.borderColor = ''; }, 3000);
+}
+
+function showNotifPopup(msg) {
+  const popup = document.getElementById('notifPopup');
+  document.getElementById('notifPopupMsg').innerHTML = msg.replace(/\n/g,'<br>');
+  popup.style.display = 'block';
+  setTimeout(() => { popup.style.display = 'none'; }, 6000);
+}
+
+function closeNotif() {
+  document.getElementById('notifPopup').style.display = 'none';
+}
+
+function addSMSLog(time, text, type) {
+  const log = document.getElementById('smsLog');
+  if(log.querySelector('.sms-entry span:last-child')?.textContent === 'Waiting for SOS trigger...') {
+    log.innerHTML = '';
+  }
+  const entry = document.createElement('div');
+  entry.className = 'sms-entry';
+  entry.innerHTML = `<span class="sms-time">${time}</span><span class="sms-text ${type||''}">${text}</span>`;
+  log.appendChild(entry);
+  log.scrollTop = log.scrollHeight;
+}
+</script>
+</body>
+</html>

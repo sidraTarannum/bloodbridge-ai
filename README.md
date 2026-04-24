@@ -46,6 +46,17 @@ BloodBridge provides a *fast, intelligent, and accessible blood network*.
 - Encourages repeat donations  
 
 ---
+ 🤖 AI System
+
+BloodBridge AI uses a simulated intelligent matching system:
+
+- Blood group compatibility logic
+- Emergency prioritization
+- Location-based filtering
+- Smart donor ranking system
+
+> Note: This is a hackathon prototype using rule-based AI logic. Future versions can integrate real machine learning models.
+
 
 ## 🤖 AI Usage  
 
